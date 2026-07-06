@@ -1,0 +1,966 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+body { background:#f8fafc !important; color:#0f172a !important; font-family:'Inter', sans-serif !important; }
+.card { background:#ffff !important; border:1px solid #e2e8f0 !important; border-radius:12px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02) !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04) !important; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.badge-strict-vermelho { background-color: #fef2f2 !important; border: 1px solid #fee2e2 !important; color: #ef4444 !important; }
+.badge-strict-amarelo { background-color: #fffbeb !important; border: 1px solid #fef3c7 !important; color: #f59e0b !important; }
+.badge-strict-verde { background-color: #f0fdf4 !important; border: 1px solid #dcfce7 !important; color: #10b981 !important; }
+.badge-strict-azul { background-color: #f0f9ff !important; border: 1px solid #e0f2fe !important; color: #0284c7 !important; }
+.status-pill { padding:6px 14px !important; border-radius:8px !important; font-weight:700 !important; font-size:11px !important; display:inline-flex !important; align-items:center !important; gap:6px !important; text-transform: uppercase !important; white-space: nowrap !important; letter-spacing: 0.05em; }
+.status-dot { width:7px !important; height:7px !important; border-radius:50% !important; display:inline-block !important; }
+.dot-strict-amarelo { background-color: #f59e0b !important; }
+.dot-strict-verde { background-color: #10b981 !important; }
+.dot-strict-azul { background-color: #0284c7 !important; }
+@keyframes pulse-red { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.25); opacity: 0.5; } }
+.dot-blink-red { animation: pulse-red 1.2s infinite !important; background-color: #ef4444 !important; }
+.tab-nav { border-bottom: 1px solid #e2e8f0 !important; background: #ffff !important; }
+.tab-btn { padding:10px 16px !important; font-weight:600 !important; font-size:14px !important; color:#64748b !important; border-radius: 8px !important; transition: all 0.2s ease !important; margin: 4px 2px; display: inline-flex; align-items: center; gap: 8px; }
+.tab-btn:hover { background: #f1f5f9 !important; color: #334155 !important; }
+.tab-btn.active { color:#ffff !important; background:#004f9f !important; font-weight:700 !important; box-shadow: 0 4px 6px -1px rgba(0, 79, 159, 0.2) !important; }
+#map, #map-flex { height: 420px !important; width: 100% !important; border-radius: 12px !important; border: 1px solid #e2e8f0 !important; z-index: 10 !important; transition: height 220ms ease; }
+@media (min-width: 1024px) { #map, #map-flex { height: 520px !important; } }
+.map-wrapper { position: relative; }
+.map-toolbar { position: absolute; top: 12px; right: 12px; z-index: 1200; display:flex; gap:6px; align-items:center; }
+.map-toolbar button { background: rgba(255,255,255,0.95); border: 1px solid #e2e8f0; padding:8px 10px; border-radius:8px; font-weight:700; color:#0f172a; cursor:pointer; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); transition: all 0.2s; }
+.map-toolbar button:hover { background: #ffff; transform: translateY(-1px); color: #004f9f; }
+.expanded-map { position: fixed !important; top: 70px !important; left: 20px !important; right: 20px !important; height: calc(100vh - 120px) !important; width: auto !important; z-index: 20000 !important; border-radius: 12px !important; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04) !important; background: white !important; border: 1px solid #cbd5e1 !important; }
+.expanded-map .leaflet-container { border-radius: 12px !important; }
+.marker-cluster-flex { background-color: rgba(245, 158, 11, 0.6) !important; }
+.marker-cluster-flex div { background-color: rgba(217, 119, 6, 0.9) !important; color: white !important; font-weight: 800 !important; border-radius: 15px; font-family: Inter, system-ui, sans-serif; }
+.marker-cluster-main { background-color: rgba(0, 79, 159, 0.4) !important; }
+.marker-cluster-main div { background-color: rgba(0, 79, 159, 0.9) !important; color: white !important; font-weight: 800 !important; border-radius: 15px; font-family: Inter, system-ui, sans-serif; }
+@keyframes blink-red-row { 0% { background-color: rgba(239, 68, 68, 0.02); } 50% { background-color: rgba(239, 68, 68, 0.08); } 100% { background-color: rgba(239, 68, 68, 0.02); } }
+.row-alarm-active { animation: blink-red-row 1.5s infinite !important; border-left: 4px solid #ef4444 !important; }
+/* Layout: coluna esquerda rolável, mapa fixo (sticky) na direita */
+.app-layout { display: flex; gap: 18px; align-items: flex-start; }
+.app-left { flex: 1 1 560px; min-width: 380px; }
+.app-right { flex: 0 0 480px; position: relative; }
+
+.app-left .scroll-area {
+  max-height: calc(100vh - 110px); /* ajuste 110px ao header/topbar */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px;
+}
+
+/* mapa fica sticky para permanecer visível enquanto a lista rola */
+.app-right .map-sticky {
+  position: sticky;
+  top: 90px; /* ajuste conforme a altura do topo (header) */
+  height: calc(100vh - 100px);
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+/* Harmoniza visual das listas de rota com os cards do painel */
+#view-saiu .card { background: #fff; border-radius: 8px; box-shadow: 0 6px 22px rgba(15,23,42,0.04); }
+#saiu-pedidos-list .pedido-item { border: 1px solid #eef2f7; border-radius: 6px; padding: 12px; background: #fff; }
+#saiu-rotas-list .card { margin-bottom: 12px; }
+#saiu-rota-selected .pedido-item { display:flex; justify-content:space-between; padding:8px 10px; border-bottom:1px solid #f1f5f9; }
+/* =====================================================================
+   V23 — RESPONSIVO MOBILE-ONLY
+   Preservação: tudo acima permanece igual no desktop.
+   As regras abaixo só funcionam em telas até 768px.
+   ===================================================================== */
+@media (max-width: 768px) {
+  html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  body {
+    font-size: 13px !important;
+  }
+
+  header {
+    padding: 10px 8px !important;
+    gap: 8px !important;
+  }
+
+  header .flex {
+    min-width: 0 !important;
+  }
+
+  header input[type="date"] {
+    max-width: 132px !important;
+    font-size: 11px !important;
+  }
+
+  #clock,
+  #activeOperatorDisplay {
+    font-size: 11px !important;
+  }
+
+  .tab-nav {
+    padding: 6px 8px !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .tab-nav > div:first-child {
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 4px !important;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    border-radius: 8px !important;
+  }
+
+  .tab-btn i {
+    font-size: 12px !important;
+  }
+
+  .tab-nav > div:last-child {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .tab-nav .relative,
+  .tab-nav input,
+  .tab-nav button[onclick="load()"] {
+    width: 100% !important;
+  }
+
+  main {
+    padding: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .card {
+    border-radius: 12px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04) !important;
+  }
+
+  .grid,
+  .app-layout,
+  #vesco-saiu-layout-v6,
+  #vesco-saiu-layout-v12,
+  #vesco-saiu-layout-v13 {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .app-left,
+  .app-right {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .app-right .map-sticky,
+  #vesco-saiu-right-v6,
+  #vesco-saiu-right-v12,
+  #vesco-saiu-right-v13 {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  #map,
+  #map-flex,
+  #map-rotas,
+  #vesco-route-map-v6,
+  #vesco-route-map-v12,
+  #vesco-route-map-v13 {
+    height: 300px !important;
+    min-height: 300px !important;
+    width: 100% !important;
+  }
+
+  .map-toolbar {
+    top: 8px !important;
+    right: 8px !important;
+    gap: 4px !important;
+  }
+
+  .map-toolbar button {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .summary-box {
+    position: static !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+
+  .overflow-x-auto,
+  .overflow-auto {
+    overflow: visible !important;
+  }
+
+  table,
+  thead,
+  tbody,
+  tr,
+  th,
+  td {
+    display: block !important;
+  }
+
+  table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  thead {
+    display: none !important;
+  }
+
+  tbody {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  tr {
+    width: 100% !important;
+    margin: 0 0 10px 0 !important;
+    padding: 10px !important;
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.04) !important;
+  }
+
+  td {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px 0 !important;
+    border: 0 !important;
+    text-align: left !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  td.hidden,
+  th.hidden,
+  .hidden.md\:table-cell,
+  .hidden.lg\:table-cell,
+  .md\:table-cell,
+  .lg\:table-cell {
+    display: block !important;
+  }
+
+  td::before {
+    display: block !important;
+    margin-bottom: 4px !important;
+    color: #64748b !important;
+    font-size: 9px !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+    letter-spacing: .04em !important;
+    text-transform: uppercase !important;
+  }
+
+  #table-fila td:nth-child(1)::before { content: "Status"; }
+  #table-fila td:nth-child(2)::before { content: "Pedido"; }
+  #table-fila td:nth-child(3)::before { content: "Limite alarme"; }
+  #table-fila td:nth-child(4)::before { content: "Data previsão"; }
+  #table-fila td:nth-child(5)::before { content: "Endereço"; }
+  #table-fila td:nth-child(6)::before { content: "Forma pag."; }
+  #table-fila td:nth-child(7)::before { content: "Ação"; }
+
+  #table-pendencias td:nth-child(1)::before { content: "Pedido"; }
+  #table-pendencias td:nth-child(2)::before { content: "Cliente e motivo"; }
+  #table-pendencias td:nth-child(3)::before { content: "Solução"; }
+  #table-pendencias td:nth-child(4)::before { content: "Ação"; }
+
+  #table-separados-hoje td:nth-child(1)::before { content: "Pedido"; }
+  #table-separados-hoje td:nth-child(2)::before { content: "Cliente"; }
+  #table-separados-hoje td:nth-child(3)::before { content: "Tempo"; }
+  #table-separados-hoje td:nth-child(4)::before { content: "Status"; }
+  #table-separados-hoje td:nth-child(5)::before { content: "Ação"; }
+
+  #table-logistica td:nth-child(1)::before { content: "Pedido"; }
+  #table-logistica td:nth-child(2)::before { content: "Limite alarme"; }
+  #table-logistica td:nth-child(3)::before { content: "Destinatário"; }
+  #table-logistica td:nth-child(4)::before { content: "Data prevista"; }
+  #table-logistica td:nth-child(5)::before { content: "Condição"; }
+  #table-logistica td:nth-child(6)::before { content: "Ação"; }
+
+  #table-envios-flex-corpo td:nth-child(1)::before { content: "Pedido / ID Flex"; }
+  #table-envios-flex-corpo td:nth-child(2)::before { content: "Volumes"; }
+  #table-envios-flex-corpo td:nth-child(3)::before { content: "Destinatário"; }
+  #table-envios-flex-corpo td:nth-child(4)::before { content: "Data prevista"; }
+  #table-envios-flex-corpo td:nth-child(5)::before { content: "Situação / Loja"; }
+  #table-envios-flex-corpo td:nth-child(6)::before { content: "Status"; }
+
+  #table-rotas td:nth-child(1)::before { content: "Selecionar"; }
+  #table-rotas td:nth-child(2)::before { content: "Pedido / E-com"; }
+  #table-rotas td:nth-child(3)::before { content: "Cliente e endereço"; }
+  #table-rotas td:nth-child(4)::before { content: "Status / origem"; }
+
+  #table-entregues td:nth-child(1)::before { content: "Pedido"; }
+  #table-entregues td:nth-child(2)::before { content: "Cliente"; }
+  #table-entregues td:nth-child(3)::before { content: "Recebedor"; }
+  #table-entregues td:nth-child(4)::before { content: "Tempo"; }
+  #table-entregues td:nth-child(5)::before { content: "Status"; }
+
+  #table-motorista td:nth-child(1)::before { content: "Pedido"; }
+  #table-motorista td:nth-child(2)::before { content: "Destinatário e endereço"; }
+  #table-motorista td:nth-child(3)::before { content: "Ação"; }
+
+  #table-tarefas td:nth-child(1)::before { content: "Tarefa"; }
+  #table-tarefas td:nth-child(2)::before { content: "Endereço"; }
+  #table-tarefas td:nth-child(3)::before { content: "Motorista"; }
+  #table-tarefas td:nth-child(4)::before { content: "Ação"; }
+
+  .status-pill {
+    width: fit-content !important;
+    max-width: 100% !important;
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    max-width: 100% !important;
+  }
+
+  td input[type="text"],
+  td input[type="url"],
+  td textarea,
+  td select,
+  .vesco-extra-input,
+  .vesco-extra-link,
+  input[placeholder*="Observ" i],
+  input[placeholder*="Link" i] {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+    margin: 4px 0 !important;
+  }
+
+  td:last-child,
+  td .flex,
+  td .inline-flex {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  td button,
+  .card button {
+    min-height: 34px !important;
+    white-space: nowrap !important;
+  }
+
+  #table-fila td:last-child .flex,
+  #table-logistica td:last-child .flex,
+  #table-entregues td:last-child .flex,
+  #table-motorista td:last-child .flex {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+
+  #table-fila td:last-child button,
+  #table-logistica td:last-child button,
+  #table-entregues td:last-child button,
+  #table-motorista td:last-child button {
+    width: 100% !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 10px !important;
+  }
+
+  #view-saiu .grid,
+  #view-rotas .grid,
+  #view-logistica .grid,
+  #view-envios_flex .grid,
+  #view-tarefas .grid,
+  #view-motorista .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  #saiu-pedidos-list,
+  #saiu-rota-selected,
+  #saiu-rotas-list {
+    max-height: none !important;
+    width: 100% !important;
+  }
+
+  #saiu-pedidos-list .pedido-item,
+  #saiu-rota-selected .pedido-item {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    gap: 8px !important;
+  }
+
+  #operatorModal > div,
+  #pendenciaModal > div,
+  #snoozeModal > div,
+  #form-assinatura-motorista,
+  .modal,
+  .modal-content {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 24px) !important;
+    overflow-y: auto !important;
+  }
+
+  #signatureCanvas {
+    height: 180px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .tab-btn {
+    font-size: 10px !important;
+    padding: 7px 9px !important;
+  }
+
+  #table-fila td:last-child .flex,
+  #table-logistica td:last-child .flex,
+  #table-entregues td:last-child .flex,
+  #table-motorista td:last-child .flex {
+    grid-template-columns: 1fr !important;
+  }
+
+  td button,
+  .card button {
+    width: 100% !important;
+  }
+
+  #map,
+  #map-flex,
+  #map-rotas,
+  #vesco-route-map-v6,
+  #vesco-route-map-v12,
+  #vesco-route-map-v13 {
+    height: 260px !important;
+    min-height: 260px !important;
+  }
+}
+
+
+
+/* ========================================================================
+   VESCO MODULAR V1 — módulos separados
+   ======================================================================== */
+.vesco-count-badge {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#dc2626;
+  color:#fff;
+  font-size:10px;
+  font-weight:900;
+  line-height:1;
+  margin-left:6px;
+}
+.vesco-count-badge.hidden { display:none !important; }
+
+.vesco-empty {
+  padding:18px;
+  text-align:center;
+  color:#94a3b8;
+  font-size:12px;
+  font-weight:800;
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  background:#f8fafc;
+}
+.vesco-empty.compact { padding:10px; }
+
+.vesco-btn {
+  border:0;
+  border-radius:8px;
+  color:#fff;
+  font-size:11px;
+  font-weight:900;
+  padding:8px 10px;
+  cursor:pointer;
+}
+.vesco-btn.green { background:#059669; }
+.vesco-btn.amber { background:#f59e0b; }
+.vesco-btn.blue { background:#2563eb; }
+.vesco-btn.danger { background:#dc2626; }
+
+.vesco-retirada-card {
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+.vesco-retirada-info { min-width:0; flex:1; }
+.vesco-retirada-title { font-size:13px; font-weight:900; color:#0f172a; }
+.vesco-retirada-sub { margin-top:3px; font-size:11px; color:#64748b; }
+.vesco-retirada-tags,
+.vesco-retirada-obs {
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:6px;
+}
+.vesco-retirada-tags span {
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  color:#475569;
+  border-radius:8px;
+  padding:2px 7px;
+  font-size:10px;
+  font-weight:800;
+}
+.vesco-retirada-tags span:first-child {
+  border-color:#e9d5ff;
+  background:#faf5ff;
+  color:#7e22ce;
+}
+.vesco-retirada-obs span {
+  border:1px solid #fed7aa;
+  background:#fff7ed;
+  color:#9a3412;
+  border-radius:8px;
+  padding:3px 7px;
+  font-size:11px;
+  font-weight:800;
+}
+.vesco-retirada-obs a {
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+  color:#1d4ed8;
+  border-radius:8px;
+  padding:3px 7px;
+  font-size:11px;
+  font-weight:900;
+  text-decoration:none;
+}
+.vesco-retirada-actions {
+  width:170px;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  flex-shrink:0;
+}
+
+.vesco-obslink-box {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:5px;
+}
+.vesco-obs-pill {
+  display:inline-flex;
+  max-width:260px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  align-items:center;
+  border:1px solid #fed7aa;
+  background:#fff7ed;
+  color:#9a3412;
+  border-radius:8px;
+  padding:2px 7px;
+  font-size:10px;
+  font-weight:800;
+}
+.vesco-link-pill {
+  display:inline-flex;
+  align-items:center;
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+  color:#1d4ed8;
+  border-radius:8px;
+  padding:2px 7px;
+  font-size:10px;
+  font-weight:900;
+  text-decoration:none;
+}
+
+.vesco-route-order {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  border:1px solid #e2e8f0;
+  border-left:4px solid #3b82f6;
+  background:#fff;
+  border-radius:10px;
+  padding:10px;
+  margin-bottom:8px;
+  cursor:pointer;
+}
+.vesco-route-order.selected {
+  background:#eff6ff;
+  border-color:#93c5fd;
+}
+.vesco-route-order small {
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  margin-top:2px;
+}
+.vesco-route-order span {
+  color:#64748b;
+  font-size:11px;
+}
+.vesco-chip {
+  display:inline-flex;
+  border:1px solid #bfdbfe;
+  background:#eff6ff;
+  color:#1d4ed8 !important;
+  border-radius:8px;
+  padding:2px 7px;
+  font-size:10px !important;
+  font-weight:900;
+  margin-top:5px;
+}
+.vesco-locate-small {
+  margin-left:auto;
+  background:#2563eb;
+  color:#fff;
+  border:0;
+  border-radius:7px;
+  padding:6px 9px;
+  font-size:11px;
+  font-weight:900;
+}
+.vesco-selected-route-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  border:1px solid #dbeafe;
+  background:#eff6ff;
+  border-radius:8px;
+  padding:8px;
+  margin-bottom:6px;
+  font-size:12px;
+  font-weight:900;
+}
+.vesco-selected-route-row small {
+  color:#64748b;
+  margin-left:4px;
+  font-weight:700;
+}
+.vesco-selected-route-row button {
+  border:0;
+  background:#ef4444;
+  color:#fff;
+  border-radius:7px;
+  width:24px;
+  height:24px;
+  font-weight:900;
+}
+.vesco-route-card {
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:10px;
+}
+.vesco-flex-warning {
+  border:1px solid #fde68a;
+  background:#fffbeb;
+  color:#92400e;
+  border-radius:10px;
+  padding:9px 12px;
+  margin-bottom:10px;
+  font-size:12px;
+  font-weight:800;
+}
+
+#vesco-map-close {
+  position:fixed;
+  top:16px;
+  right:18px;
+  z-index:999999;
+  background:#0f172a;
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:12px;
+  font-weight:900;
+  box-shadow:0 8px 24px rgba(0,0,0,.24);
+  cursor:pointer;
+}
+.vesco-map-expanded {
+  position:fixed !important;
+  inset:24px !important;
+  width:auto !important;
+  height:calc(100vh - 48px) !important;
+  min-height:calc(100vh - 48px) !important;
+  max-height:calc(100vh - 48px) !important;
+  z-index:999998 !important;
+  background:#fff !important;
+  border-radius:16px !important;
+  box-shadow:0 24px 80px rgba(15,23,42,.40) !important;
+}
+body.vesco-map-expanded-body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.55);
+  z-index:999997;
+}
+.leaflet-container,
+#map,
+#map-flex,
+#mapFlex,
+#map-rotas,
+[id*="map"] {
+  pointer-events:auto !important;
+  touch-action:auto !important;
+}
+.leaflet-control-container,
+.leaflet-top,
+.leaflet-bottom,
+.leaflet-control {
+  pointer-events:auto !important;
+  z-index:1000 !important;
+}
+.leaflet-pane { pointer-events:auto !important; }
+
+@media (max-width:768px){
+  .vesco-retirada-card { flex-direction:column; }
+  .vesco-retirada-actions { width:100%; flex-direction:row; }
+  .vesco-btn { flex:1; }
+  .vesco-map-expanded {
+    inset:10px !important;
+    height:calc(100vh - 20px) !important;
+    min-height:calc(100vh - 20px) !important;
+  }
+}
+
+
+/* =========================
+   Modular V2 fixes
+   ========================= */
+#main-retiradas-v16,
+#main-retiradas-v18,
+#main-retiradas-v19,
+#view-retiradas-v16,
+#view-retiradas-v18,
+#view-retiradas-v19,
+[data-vesco-disabled="true"] {
+  display: none !important;
+}
+
+.vesco-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+.vesco-count-badge.hidden { display: none !important; }
+
+.vesco-obslink-box {
+  width: 100%;
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  clear: both;
+}
+.vesco-obs-pill {
+  max-width: 360px !important;
+}
+.vesco-link-pill {
+  white-space: nowrap;
+}
+
+.vesco-route-manual-box {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  border-radius: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.vesco-route-manual-box label {
+  display:block;
+  font-weight:900;
+  color:#1d4ed8;
+  font-size:12px;
+  margin-bottom:6px;
+}
+.vesco-route-manual-row {
+  display:flex;
+  gap:8px;
+}
+.vesco-route-manual-row input {
+  flex:1;
+  border:1px solid #bfdbfe;
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:12px;
+  font-weight:700;
+  outline:none;
+  background:#fff;
+}
+.vesco-route-manual-row button {
+  border:0;
+  border-radius:8px;
+  background:#2563eb;
+  color:#fff;
+  font-weight:900;
+  font-size:12px;
+  padding:8px 12px;
+}
+.vesco-route-manual-box small {
+  display:block;
+  margin-top:6px;
+  color:#1d4ed8;
+  font-size:10px;
+  font-weight:700;
+}
+
+.vesco-flex-locate-row {
+  display:block;
+  margin-top:7px;
+  border:1px solid #fed7aa;
+  background:#fffbeb;
+  color:#d97706;
+  border-radius:7px;
+  padding:4px 7px;
+  font-size:10px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+#table-envios-flex-corpo td:last-child .vesco-chip,
+#table-envios-flex-corpo td:last-child span:not(.status-dot) {
+  max-width: 160px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media (max-width:768px){
+  .vesco-route-manual-row { flex-direction: column; }
+}
+
+/* =========================
+   Modular V3 incremental fixes
+   ========================= */
+.vesco-obslink-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 8px;
+  max-width: 520px;
+}
+.vesco-obslink-input {
+  min-width: 135px;
+  flex: 1 1 150px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  outline: none;
+}
+.vesco-obslink-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, .12);
+}
+.vesco-obslink-save {
+  border: 0;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 8px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.vesco-obslink-box {
+  width: 100%;
+  margin-top: 7px !important;
+  display: flex !important;
+  gap: 6px;
+  flex-wrap: wrap;
+  clear: both;
+}
+.vesco-obs-pill,
+.vesco-link-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+.vesco-obs-pill { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+.vesco-link-pill { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; text-decoration: none; }
+
+.vesco-tempo-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.vesco-tempo-main {
+  display: inline-flex;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 3px 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 900;
+}
+.vesco-tempo-box small,
+.vesco-operador-mini {
+  display: block;
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
